@@ -5,7 +5,7 @@ $(document).ready(function (datasource) {
 var input = [];
 var match = []; // create array here
 
-$.getJSON( "http://localhost:8889/apps.who.int/gho/athena/api/gho.json", function( data ) {
+$.getJSON( "http://apps.who.int/gho/athena/api/gho.json", function( data ) {
     console.log('loaded');
 	
     $.each(data.dimension[0].code, function (index, code) {
@@ -14,7 +14,7 @@ $.getJSON( "http://localhost:8889/apps.who.int/gho/athena/api/gho.json", functio
     console.log(input); // see the output here
 });
 
-$.getJSON( "http://localhost:8889/apps.who.int/gho/athena/api/gho.json", function( data ) {
+$.getJSON( "http://apps.who.int/gho/athena/api/gho.json", function( data ) {
     console.log('loaded');
 	
     $.each(data.dimension[0].code, function (index, code) {
@@ -37,7 +37,7 @@ $("#CSV").autocomplete({
 			
 	
 	
-	var datasource = "http://localhost:8889/apps.who.int/gho/athena/api/GHO/" + search + ".csv";
+	var datasource = "http://apps.who.int/gho/athena/api/GHO/" + search + ".csv";
 	var myConnector = tableau.makeConnector();
 	
 	var result = $.grep(match, function(e){ return e.label == indicator; });
@@ -47,7 +47,7 @@ $("#CSV").autocomplete({
 	$('#CSV').on('change keyup paste click', function() {
     indicator = $('#CSV').val();
 	
-	datasource = "http://localhost:8889/apps.who.int/gho/athena/api/GHO/" + search + ".csv";
+	datasource = "http://apps.who.int/gho/athena/api/GHO/" + search + ".csv";
 	tableau.connectionData = datasource;
 	});
 	
@@ -157,7 +157,7 @@ $("#CSV").autocomplete({
 	
 	
 			search = result[0].label;
-			datasource = "http://localhost:8889/apps.who.int/gho/athena/api/GHO/" + search + ".csv";
+			datasource = "http://apps.who.int/gho/athena/api/GHO/" + search + ".csv";
 			tableau.connectionData = datasource;
 			tableau.connectionName = "WDCcsv";
 			tableau.connectionData = datasource;
