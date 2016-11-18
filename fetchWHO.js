@@ -1,60 +1,69 @@
 $(document).ready(function (datasource) {
 
-
-
-var input = [];
-var match = []; // create array here
-
-$.getJSON( "http://apps.who.int/gho/athena/api/gho.json", function( data ) {
-    console.log('loaded');
+	var input = [];
+	var match = [];
 	
-    $.each(data.dimension[0].code, function (index, code) {
-        input.push(code.display); //push values here
-    });
-    console.log(input); // see the output here
-});
+	////////////////////////////////////////////////////////////////////////////////
+	//Gets list of Indicators by their natural name.  AKA 'display' property on JSON
+	//This places JSON data into the 'input' array
+	////////////////////////////////////////////////////////////////////////////////
+	
+	$.getJSON("http://localhost:8889/apps.who.int/gho/athena/api/gho.json", function (data) {
+		console.log('loaded');
 
-$.getJSON( "http://apps.who.int/gho/athena/api/gho.json", function( data ) {
-    console.log('loaded');
-	
-    $.each(data.dimension[0].code, function (index, code) {
-        match.push({name: code.display, label: code.label}); //push values here
-    });
-    console.log(match); // see the output here
-});
-
-
-
-$("#CSV").autocomplete({
-  source: input
-});
-
-
-	var search = '';
-	var indicator = $('#CSV').val();
-	
-
-			
-	
-	
-	var datasource = "http://apps.who.int/gho/athena/api/GHO/" + search + ".csv";
-	var myConnector = tableau.makeConnector();
-	
-	var result = $.grep(match, function(e){ return e.label == indicator; });
-	
-	// var search = result[0].name;
-	
-	$('#CSV').on('change keyup paste click', function() {
-    indicator = $('#CSV').val();
-	
-	datasource = "http://apps.who.int/gho/athena/api/GHO/" + search + ".csv";
-	tableau.connectionData = datasource;
+		$.each(data.dimension[0].code, function (index, code) {
+			input.push(code.display);
+		});
+		console.log(input);
 	});
+	
+	/////////////////////////////////////////////////////////////////////////////////
+	//Gets list of Indicators by their natural name (AKA 'display' property on JSON) 
+	//AND their code  (AKA 'label' property on JSON). 
+	//
+	//This places JSON data into the 'match' array where it will be used to match
+	//what the input is.
+	/////////////////////////////////////////////////////////////////////////////////
+	
+	$.getJSON("http://localhost:8889/apps.who.int/gho/athena/api/gho.json", function (data) {
+		console.log('loaded');
+
+		$.each(data.dimension[0].code, function (index, code) {
+			match.push({
+				name: code.display,
+				label: code.label
+			});
+		});
+		console.log(match);
+	});
+
+	////////////////////////////////////////////////////////////////////////////////
+	//jquery autocomplete uses the 'input' array to find the name of the indicator
+	////////////////////////////////////////////////////////////////////////////////
+	
+	$("#CSV").autocomplete({
+		source: input
+	});
+
+	////////////////////////////////////////////////////////////////////////////////
+	//Declare global variables
+	////////////////////////////////////////////////////////////////////////////////
+	
+	var search = '';
+	var indicator = '';
+	var datasource = '';
+	var result = '';
+	var myConnector = tableau.makeConnector();
+
+	////////////////////////////////////////////////////////////////////////////////
+	//Creates the schema for Tableau by grabbing the top row of the CSV file.  This 
+	//function gets called AFTER the submit button is pressed (below)
+	////////////////////////////////////////////////////////////////////////////////
 	
 	myConnector.getSchema = function (schemaCallback) {
 
 		var source = tableau.connectionData;
-		
+
 		$.ajax({
 			url: source,
 			dataType: "text"
@@ -91,15 +100,15 @@ $("#CSV").autocomplete({
 		}
 	};
 
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	//Once schema is loaded into Tableau, the data is then grabbed by getting rows below the first row
+	//This function gets called AFTER the submit button is pressed (below)
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	myConnector.getData = function (table, doneCallback) {
 
-		
 		var source = tableau.connectionData;
-		
+
 		$.ajax({
 			url: source,
 			dataType: "text",
@@ -134,38 +143,35 @@ $("#CSV").autocomplete({
 			doneCallback();
 		}
 	};
-
+	
+	////////////////////////////////////////////////////////////////////////////////
+	//Registers connector with Tableau.  Not really sure what this does exactly.
+	////////////////////////////////////////////////////////////////////////////////
+	
 	tableau.registerConnector(myConnector);
-
+	
+	////////////////////////////////////////////////////////////////////////////////
+	//When the 'submit button'  is pushed, the indicator in the text box is grabbed 
+	//and then grepped to the match[] where it finds its matching ID and placed into 
+	//result[].  The ID or 'label' of the CSV is placed into the 'search' var.
+	//'search' is then placed into the 'datasource' URL where it is passed through
+	//getSchema and get getData functions above by being placed in connectionData.
+	////////////////////////////////////////////////////////////////////////////////
+	
 	$(document).ready(function () {
 		$("#submitButton").click(function () {
-			var display = '';
-			//indicator = 'Yellow fever - number of reported cases';
 			indicator = $('#CSV').val();
-			
-			var result = $.grep(match, function(e){ return e.name === indicator; });
-	
-	
-	if (result.length == 0) { console.log("111111111");
-  // not found
-} else if (result.length == 1) {console.log("22222222" + result[0].label);
-  // access the foo property using result[0].foo
-} else {console.log("333333333");
-  // multiple items found
-}
-	
-	
-	
+
+			var result = $.grep(match, function (e) {
+					return e.name === indicator;
+				});
+
 			search = result[0].label;
-			datasource = "http://apps.who.int/gho/athena/api/GHO/" + search + ".csv";
+			datasource = "http://localhost:8889/apps.who.int/gho/athena/api/GHO/" + search + ".csv";
 			tableau.connectionData = datasource;
 			tableau.connectionName = "WDCcsv";
-			tableau.connectionData = datasource;
 			tableau.submit();
-			console.log(search);
 		});
 	});
-
-	
 
 });
